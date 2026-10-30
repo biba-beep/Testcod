@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PocketCode</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#1b1d23;--b2:#23262e;--bd:#343844;--tx:#d7dae0;--mu:#8a90a0;--ac:#4f9cff;--kw:#c678dd;--st:#98c379;--cm:#6b7280;--nm:#d19a66;--fn:#61afef;--er:#ff6b6b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--b2);border-bottom:1px solid var(--bd)}
+#fname{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font:inherit;color:var(--tx);background:#2d313c;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;min-height:44px}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button:active{opacity:.7}
+main{flex:1;position:relative;min-height:0}
+.pane{position:absolute;inset:0;display:none;overflow:auto}
+.pane.on{display:block}
+#pc{overflow:hidden}
+.ed{position:absolute;inset:0}
+#ta,#hl{position:absolute;top:0;bottom:0;left:40px;right:0;margin:0;padding:8px;font:16px/22px ui-monospace,Menlo,Consolas,monospace;white-space:pre;tab-size:4;border:0;box-sizing:border-box}
+#hl{overflow:hidden;pointer-events:none}
+#ta{background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#fff;resize:none;outline:none;overflow:auto}
+#gut{position:absolute;top:0;left:0;width:40px;bottom:0;overflow:hidden;background:var(--b2);color:var(--mu);font:14px/22px ui-monospace,Menlo,monospace;text-align:right;box-sizing:border-box;padding:8px 6px 0 0;white-space:pre}
+.k{color:var(--kw)}.s{color:var(--st)}.c{color:var(--cm);font-style:italic}.n{color:var(--nm)}.f{color:var(--fn)}
+.bar{display:none;overflow-x:auto;white-space:nowrap;background:var(--b2);border-top:1px solid var(--bd);padding:6px;gap:6px;-webkit-overflow-scrolling:touch}
+.bar.on{display:flex}
+.bar button{flex:none;padding:8px 12px;min-height:40px;min-width:40px;font-family:ui-monospace,Menlo,monospace}
+#sg button{color:var(--ac)}
+#sg:empty::before{content:"подсказки появятся при наборе";color:var(--mu);padding:10px;font-size:13px}
+nav{display:flex;background:var(--b2);border-top:1px solid var(--bd)}
+nav button{flex:1;border:0;border-radius:0;background:none;color:var(--mu);position:relative}
+nav button.on{color:var(--ac);box-shadow:inset 0 2px var(--ac)}
+#eb{background:var(--er);color:#fff;border-radius:9px;font-size:11px;padding:1px 6px;margin-left:4px}
+.pad{padding:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fi{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)}
+.fi span{flex:1;overflow:hidden;text-overflow:ellipsis}
+.fi.cur span{color:var(--ac);font-weight:600}
+input[type=text]{flex:1;min-width:0;font:16px inherit;background:#12141a;color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:10px}
+#fr{width:100%;height:55%;border:0;background:#fff;display:block}
+#co{height:45%;overflow:auto;margin:0;padding:8px;font:13px/18px ui-monospace,Menlo,monospace;white-space:pre-wrap;border-top:1px solid var(--bd)}
+.er{border:1px solid var(--bd);border-left:4px solid var(--er);border-radius:8px;padding:10px;margin-bottom:10px;background:var(--b2)}
+.er small{color:var(--mu)}.er .ru{margin:6px 0;color:#ffd479}.er code{font:13px ui-monospace,monospace;word-break:break-word}
+.bd{display:inline-block;font-size:11px;padding:1px 7px;border-radius:8px;background:#3a3f4d;margin-right:6px}
+[hidden]{display:none!important}
+.hint{color:var(--mu);font-size:13px;line-height:1.4}
+</style></head><body>
+<div id="app">
+<header><span id="fname"></span><button class="p" id="run">▶ Запуск</button></header>
+<main>
+ <section class="pane on" id="pc"><div class="ed"><div id="gut"></div><pre id="hl"></pre>
+  <textarea id="ta" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"></textarea></div></section>
+ <section class="pane pad" id="pf">
+  <div class="row"><button id="imp">⬆ Импорт</button><button id="ez">⬇ ZIP</button><button id="eh">⬇ Один HTML</button><button id="et">⬇ Файл (.txt)</button></div>
+  <div class="row"><input type="text" id="nn" placeholder="новый файл, напр. app.py"><button id="nb">+ Создать</button></div>
+  <div id="fl"></div><h4>Языки и рантаймы</h4><div id="pl"></div><p class="hint">Рантайм ставится импортом ZIP-пакета (кнопка «Импорт»). Ставь только пакеты, которым доверяешь: они исполняются как код приложения.</p>
+  <p class="hint">Импорт: ZIP (распакуется), либо отдельные файлы. Проект хранится в браузере телефона. Языки по расширению: py, js, html, css, json, md, java, cs, c, cpp, go, rs, php, sql.</p>
+  <input type="file" id="fi" multiple hidden>
+ </section>
+ <section class="pane" id="po"><iframe id="fr" sandbox="allow-scripts allow-modals"></iframe><div id="mpl"></div><pre id="co"></pre><div class="row pad" id="inp" hidden><input type="text" id="iv" placeholder="ввод для input()"><button id="ib" class="p">Ввод</button></div></section>
+ <section class="pane pad" id="pe"><div class="row"><button id="ce">Очистить журнал</button></div><div id="el"></div></section>
+</main>
+<div class="bar on" id="sg"></div>
+<div class="bar on" id="sy"></div>
+<nav><button data-t="pc" class="on">Код</button><button data-t="pf">Файлы</button><button data-t="po">Вывод</button><button data-t="pe">Ошибки<span id="eb" hidden>0</span></button></nav>
+</div>
+<script>
+const $=id=>document.getElementById(id),ta=$('ta'),hl=$('hl'),gut=$('gut');
+const KEY='pocketcode1';
+let S={files:{'main.py':'# Python (Skulpt): нажми ▶ Запуск\nnums = [1, 2, 3]\nfor n in nums:\n    print(n)\n','index.html':'<!doctype html>\n<html><body>\n<h1>Привет!</h1>\n<script>\nconsole.log("работает");\n<\/script>\n</body></html>\n'},cur:'index.html'};
+try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.files&&Object.keys(o.files).length)S=o}}catch(e){}
+let ERR=[];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){logErr('app','Не удалось сохранить: '+e.message)}};
+const C='\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/';
+const J='abstract as assert boolean break byte case catch char class const continue default do double else enum extends final finally float for if implements import in instanceof int interface long new null package private protected public return short static super switch this throw throws try void volatile while true false var';
+const CS='abstract as base bool break byte case catch char class const continue decimal default delegate do double else enum event explicit extern false finally float for foreach if in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sealed short static string struct switch this throw true try typeof uint ulong using virtual void while var async await';
+const LG={
+py:{cm:'#.*',kw:'and as assert async await break class continue def del elif else except finally for from global if import in is lambda None nonlocal not or pass raise return self try True False while with yield',bi:'print len range int str float list dict set tuple input open sorted enumerate zip map filter sum min max abs type isinstance round reversed any all'},
+js:{cm:C,kw:'async await break case catch class const continue default delete do else export extends finally for from function if import in instanceof let new null of return static super switch this throw true false try typeof undefined var void while yield',bi:'console document window Math JSON Array Object String Number Promise setTimeout fetch parseInt parseFloat'},
+html:{cm:'<!--[\\s\\S]*?-->',kw:'',bi:''},
+css:{cm:'\\/\\*[\\s\\S]*?\\*\\/',kw:'important',bi:'color background margin padding display flex grid border font width height position'},
+json:{cm:'(?!)',kw:'true false null',bi:''},
+md:{cm:'(?!)',kw:'',bi:''},
+java:{cm:C,kw:J,bi:'System String Integer List ArrayList Map HashMap Math Object'},
+cs:{cm:C,kw:CS,bi:'Console String List Dictionary Math Convert'},
+c:{cm:C,kw:'auto break case char const continue default do double else enum extern float for goto if int long register return short signed sizeof static struct switch typedef union unsigned void volatile while',bi:'printf scanf malloc free strlen'},
+cpp:{cm:C,kw:'auto bool break case catch char class const continue default delete do double else enum for if int long namespace new nullptr private protected public return short static struct switch template this throw try typedef using virtual void while true false',bi:'cout cin endl string vector map std'},
+go:{cm:C,kw:'break case chan const continue default defer else for func go if import interface map package range return select struct switch type var nil true false',bi:'fmt Println Printf len make append'},
+rs:{cm:C,kw:'as break const continue else enum fn for if impl in let loop match mod mut pub return self struct trait use where while true false',bi:'println vec String Vec Option Some None'},
+php:{cm:C+'|#.*',kw:'abstract and as break case catch class const continue default do echo else elseif extends for foreach function global if new null or private protected public return static switch this throw try use while true false',bi:'array count strlen isset empty print_r var_dump'},
+sql:{cm:'--.*',kw:'SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE CREATE TABLE DROP ALTER JOIN LEFT RIGHT INNER ON GROUP BY ORDER LIMIT AND OR NOT NULL AS DISTINCT',bi:'COUNT SUM AVG MIN MAX'}
+};
+const EX={py:'py',js:'js',mjs:'js',ts:'js',html:'html',htm:'html',css:'css',json:'json',md:'md',java:'java',cs:'cs',c:'c',h:'c',cpp:'cpp',hpp:'cpp',cc:'cpp',go:'go',rs:'rs',php:'php',sql:'sql'};
+const lang=(f=S.cur)=>EX[(f.split('.').pop()||'').toLowerCase()]||'md';
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const sets={};
+function setOf(l,k){const key=l+k;return sets[key]||(sets[key]=new Set(LG[l][k].split(' ').filter(Boolean)))}
+function hi(code,l){
+ const g=LG[l];let re;
+ re=new RegExp('('+g.cm+')|("(?:\\\\.|[^"\\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\\n])*\'|`[^`]*`)|(\\b\\d+\\.?\\d*\\b)|(<\\/?[A-Za-z][\\w-]*|[A-Za-z_]\\w*)','g');
+ const K=setOf(l,'kw'),B=setOf(l,'bi');
+ return esc(code).length&&code.replace(re,(m,c,s,n,w)=>{
+  const e=esc(m);
+  if(c)return '<span class="c">'+e+'</span>';
+  if(s)return '<span class="s">'+e+'</span>';
+  if(n)return '<span class="n">'+e+'</span>';
+  if(w){if(w[0]=='<'&&l=='html')return '<span class="k">'+e+'</span>';if(K.has(w)||(l=='sql'&&K.has(w.toUpperCase())))return '<span class="k">'+e+'</span>';if(B.has(w))return '<span class="f">'+e+'</span>'}
+  return e}).replace(/(^|[^\\])&(?!amp;|lt;|gt;)/g,'$1&amp;');
+}
+function render(){
+ const v=ta.value,l=lang();
+ // экранируем только вне токенов: hi сам экранирует токены, остальное – ниже
+ hl.innerHTML=safeHi(v,l)+'\n';
+ const n=v.split('\n').length;let g='';for(let i=1;i<=n;i++)g+=i+'\n';gut.textContent=g;
+ sync();
+}
+function safeHi(v,l){
+ // экранирование «простого текста» между токенами
+ const g=LG[l];const re=new RegExp('('+g.cm+')|("(?:\\\\.|[^"\\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\\n])*\'|`[^`]*`)|(\\b\\d+\\.?\\d*\\b)|(<\\/?[A-Za-z][\\w-]*|[A-Za-z_]\\w*)','g');
+ const K=setOf(l,'kw'),B=setOf(l,'bi');let out='',last=0,m;
+ while((m=re.exec(v))){
+  if(m[0]==='')break;
+  out+=esc(v.slice(last,m.index));last=m.index+m[0].length;
+  const e=esc(m[0]);let c='';
+  if(m[1])c='c';else if(m[2])c='s';else if(m[3])c='n';else{const w=m[4];
+   if(w[0]=='<')c=l=='html'?'k':'';else if(K.has(w)||(l=='sql'&&K.has(w.toUpperCase())))c='k';else if(B.has(w))c='f'}
+  out+=c?'<span class="'+c+'">'+e+'</span>':e}
+ return out+esc(v.slice(last));
+}
+function sync(){hl.scrollTop=ta.scrollTop;hl.scrollLeft=ta.scrollLeft;gut.scrollTop=ta.scrollTop}
+ta.addEventListener('scroll',sync);
+let tm;
+function changed(){S.files[S.cur]=ta.value;render();suggest();clearTimeout(tm);tm=setTimeout(save,400)}
+ta.addEventListener('input',changed);
+ta.addEventListener('keyup',e=>{if(e.key.startsWith('Arrow'))suggest()});
+ta.addEventListener('click',suggest);
+ta.addEventListener('keydown',e=>{
+ if(e.key==='Tab'){e.preventDefault();put('    ')}
+ else if(e.key==='Enter'){
+  const p=ta.selectionStart,b=ta.value.slice(0,p),ln=b.slice(b.lastIndexOf('\n')+1);
+  let ind=ln.match(/^\s*/)[0];if(/[:{(\[]\s*$/.test(ln))ind+='    ';
+  e.preventDefault();put('\n'+ind)}
+});
+function put(s,back){const a=ta.selectionStart,b=ta.selectionEnd;ta.setRangeText(s,a,b,'end');if(back)ta.selectionStart=ta.selectionEnd=a+s.length-back;changed()}
+// ---- подсказки ----
+function suggest(){
+ const v=ta.value,p=ta.selectionStart,bf=v.slice(0,p),l=lang(),sg=$('sg');
+ const m=bf.match(/[A-Za-z_]\w*$/),pre=m?m[0]:'';
+ const line=bf.slice(bf.lastIndexOf('\n')+1);
+ const after=l=='py'&&/\bfor\s+\w+(\s*,\s*\w+)*\s+in\s+\w*$/.test(line);
+ sg.innerHTML='';
+ if(!pre&&!after)return;
+ const seen=new Set(),out=[];
+ const add=(name,call)=>{const key=name.toLowerCase();if(seen.has(key)||name===pre||(pre&&!name.toLowerCase().startsWith(pre.toLowerCase())))return;seen.add(key);out.push(call?name+'()':name)};
+ if(after){add('range',1);add('enumerate',1)}
+ const kwSet=setOf(l,'kw'),bi=setOf(l,'bi');
+ const ids=[...new Set((v.slice(0,p-pre.length)+' '+v.slice(p)).match(/[A-Za-z_]\w+/g)||[])].filter(x=>!kwSet.has(x)&&!bi.has(x));
+ ids.forEach(x=>add(x,0));
+ bi.forEach(x=>add(x,l=='py'||l=='php'||l=='go'||l=='c'?1:0));
+ kwSet.forEach(x=>add(x,0));
+ out.slice(0,40).forEach(t=>{const b=document.createElement('button');b.textContent=t;
+  b.addEventListener('mousedown',e=>e.preventDefault());
+  b.addEventListener('click',()=>{const st=ta.selectionStart,mm=ta.value.slice(0,st).match(/[A-Za-z_]\w*$/),a=st-(mm?mm[0].length:0);
+   ta.setRangeText(t,a,st,'end');if(t.endsWith('()'))ta.selectionStart=ta.selectionEnd=a+t.length-1;changed();ta.focus()});
+  sg.appendChild(b)});
+}
+['Tab','(',')','[',']','{','}','"',"'",':','=','_','#','.',',',';','<','>','/','\\','+','-','*','&','|','!','%'].forEach(s=>{
+ const b=document.createElement('button');b.textContent=s=='Tab'?'⇥':s;
+ b.addEventListener('mousedown',e=>e.preventDefault());
+ b.addEventListener('click',()=>{const pair={'(':')','[':']','{':'}','"':'"',"'":"'"}[s];
+  if(s=='Tab')put('    ');else if(pair)put(s+pair,1);else put(s);ta.focus()});
+ $('sy').appendChild(b)});
+// ---- файлы ----
+function open(f){S.cur=f;ta.value=S.files[f];$('fname').textContent=f;render();suggest();lf();save()}
+function lf(){const box=$('fl');box.innerHTML='';Object.keys(S.files).sort().forEach(f=>{
+ const d=document.createElement('div');d.className='fi'+(f==S.cur?' cur':'');
+ const s=document.createElement('span');s.textContent=f;s.onclick=()=>{open(f);tab('pc')};
+ const x=document.createElement('button');x.textContent='🗑';x.onclick=()=>{if(Object.keys(S.files).length<2)return;delete S.files[f];if(S.cur==f)S.cur=Object.keys(S.files)[0];open(S.cur)};
+ d.append(s,x);box.appendChild(d)})}
+$('nb').onclick=()=>{const n=$('nn').value.trim().replace(/[\\]/g,'/');if(!n)return;if(!S.files[n])S.files[n]='';$('nn').value='';open(n);tab('pc')};
+$('imp').onclick=()=>$('fi').click();
+const BIN=/\.(png|jpe?g|gif|webp|ico|mp3|mp4|woff2?|ttf|pdf|apk|exe|class|jar|so|bin)$/i;
+$('fi').onchange=async e=>{let n=0,skip=0;
+ try{for(const f of e.target.files){
+  if(/\.zip$/i.test(f.name)){const z=await JSZip.loadAsync(f);if(z.file('manifest.json')&&await installPack(z))continue;
+   for(const k of Object.keys(z.files)){const o=z.files[k];if(o.dir||/(^|\/)(\.git|node_modules|__MACOSX)\//.test(k))continue;
+    if(BIN.test(k)){skip++;continue}S.files[k]=await o.async('string');n++}}
+  else if(BIN.test(f.name)){skip++}else{S.files[f.name]=await f.text();n++}}
+ }catch(er){logErr('app','Ошибка импорта: '+er.message)}
+ e.target.value='';lf();save();if(n||skip)alert('Импортировано файлов: '+n+(skip?'. Пропущено бинарных: '+skip:''));
+ const k=Object.keys(S.files);if(n&&!S.files[S.cur])open(k[0])};
+async function natSave(name,data){let b;
+ if(typeof data==='string')b=btoa(unescape(encodeURIComponent(data)));
+ else{const u=new Uint8Array(await data.arrayBuffer());let t='';for(let i=0;i<u.length;i+=8192)t+=String.fromCharCode.apply(null,u.subarray(i,i+8192));b=btoa(t)}
+ const r=await Capacitor.Plugins.Filesystem.writeFile({path:name,data:b,directory:'CACHE'});
+ await Capacitor.Plugins.Share.share({title:name,url:r.uri})}
+async function dl(name,data){
+ try{if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){await natSave(name,data);return}const d=window.claude&&await claude.use('downloads');if(!d){logErr('app','Скачивание недоступно в этом окне. Откройте приложение по ссылке в браузере или в Claude.');return}
+  await d.save({filename:name,data})}catch(e){if(e&&e.code!=='declined')logErr('app','Экспорт не удался: '+(e.message||e.code))}}
+$('ez').onclick=async()=>{const z=new JSZip();for(const k in S.files)z.file(k,S.files[k]);dl('project.zip',await z.generateAsync({type:'blob'}))};
+$('et').onclick=()=>dl(S.cur.split('/').pop()+'.txt',S.files[S.cur]);
+function bundle(f){let h=S.files[f]||'';
+ h=h.replace(/<link[^>]+href=["']([^"']+\.css)["'][^>]*>/gi,(m,u)=>S.files[u]!=null?'<style>'+S.files[u]+'</style>':m);
+ h=h.replace(/<script([^>]*)src=["']([^"']+\.js)["']([^>]*)><\/script>/gi,(m,a,u,b)=>S.files[u]!=null?'<script'+a+b+'>'+S.files[u].replace(/<\/script/gi,'<\\/script')+'<\/script>':m);return h}
+$('eh').onclick=()=>{const f=S.files['index.html']!=null?'index.html':Object.keys(S.files).find(x=>lang(x)=='html');
+ if(!f){logErr('app','В проекте нет HTML-файла для сборки.');tab('pe');return}dl('app.html',bundle(f))};
+// ---- запуск ----
+const BR='<script>(function(){function p(t,m,l){parent.postMessage({pc:1,t:t,m:String(m),l:l},"*")}var o=console.log;["log","info","warn","error"].forEach(function(k){var f=console[k];console[k]=function(){p(k,[].slice.call(arguments).map(function(a){try{return typeof a=="object"?JSON.stringify(a):a}catch(e){return a}}).join(" "));f.apply(console,arguments)}});window.onerror=function(m,s,l){p("err",m,l);return true};window.addEventListener("unhandledrejection",function(e){p("err",(e.reason&&e.reason.message)||e.reason,0)})})()<\/script>';
+let off=0;
+$('run').onclick=()=>{const l=lang(),co=$('co');co.textContent='';$('fr').srcdoc='';$('fr').style.display=l=='py'?'none':'block';co.style.height=l=='py'?'80%':'45%';$('inp').hidden=true;tab('po');
+ const rt=(l=='html'||l=='js')?null:Object.values(RT).find(r=>(r.langs||[]).includes(l));if(rt){$('fr').style.display='none';co.style.height='80%';runExt(rt,l)}else if(l=='html'){off=0;$('fr').srcdoc=BR+bundle(S.cur)}
+ else if(l=='js'){off=1;$('fr').srcdoc=BR+'<script>\n'+S.files[S.cur].replace(/<\/script/gi,'<\\/script')+'\n<\/script>'}
+ else if(l=='py'){runPy()}
+ else co.textContent='Для этого языка не установлен рантайм. Поставь пакет: Файлы → Импорт (ZIP-пакет рантайма).'};
+let inpRes=null;
+function sendIn(){const v=$('iv').value;$('iv').value='';$('inp').hidden=true;if(inpRes){const r=inpRes;inpRes=null;r(v)}}
+$('ib').onclick=sendIn;$('iv').addEventListener('keydown',e=>{if(e.key==='Enter')sendIn()});
+let PY=null;
+async function getPy(){if(PY)return PY;
+ if(typeof loadPyodide==='undefined')await new Promise((ok,no)=>{const s=document.createElement('script');s.src='pyodide/pyodide.js';s.onload=ok;s.onerror=()=>no(new Error('pyodide не найден'));document.head.appendChild(s)});
+ PY=await loadPyodide({indexURL:'pyodide/'});return PY}
+async function runPy(){
+ const co=$('co');co.textContent='Загрузка Python…\n';let py;
+ try{py=await getPy()}catch(e){co.textContent='Полный Python (Pyodide) есть только в установленном APK. Сейчас запущен упрощённый Skulpt.\n\n';return runSk()}
+ co.textContent='';
+ py.setStdout({batched:t=>{co.textContent+=t+'\n'}});py.setStderr({batched:t=>{co.textContent+=t+'\n'}});
+ py.setStdin({stdin:()=>{const v=prompt('Ввод для input()');return v==null?'':v}});
+ document.pyodideMplTarget=$('mpl');$('mpl').innerHTML='';
+ const code=S.files[S.cur];
+ try{await py.loadPackagesFromImports(code);await py.runPythonAsync(code);co.textContent+='\n✔ Готово'}
+ catch(e){const m=String(e.message||e).trim();const L=[...m.matchAll(/File "<exec>", line (\d+)/g)];const l=L.length?+L[L.length-1][1]:0;const last=m.split('\n').pop();co.textContent+='\n✖ '+m+'\n→ '+ru(last);logErr('code',last,l)}
+}
+async function runSk(){
+ const co=$('co');
+ if(typeof Sk==='undefined'){co.textContent='Интерпретатор Python (Skulpt) не загрузился. Проверь интернет и перезагрузи страницу.';logErr('app','Skulpt не загружен');return}
+ Sk.configure({output:t=>{co.textContent+=t;co.scrollTop=co.scrollHeight},
+  read:x=>{if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined)throw "File not found: '"+x+"'";return Sk.builtinFiles.files[x]},
+  inputfunTakesPrompt:true,__future__:Sk.python3,
+  inputfun:p=>new Promise(res=>{co.textContent+=p;$('inp').hidden=false;$('iv').focus();inpRes=v=>{co.textContent+=v+'\n';res(v)}})});
+ try{await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody('<stdin>',false,S.files[S.cur],true));co.textContent+='\n✔ Готово'}
+ catch(e){const m=String(e);let l=0;try{const t=(e.traceback||[]).filter(x=>String(x.filename).indexOf('stdin')>=0);l=(t.length?t[t.length-1]:e.traceback[0]).lineno||0}catch(_){}
+  if(!l){const x=m.match(/line (\d+)/);if(x)l=+x[1]}
+  co.textContent+='\n✖ '+m+'\n→ '+ru(m);logErr('code',m,l);$('inp').hidden=true}
+}
+addEventListener('message',e=>{const d=e.data;if(!d||!d.pc)return;
+ if(d.t=='err'){logErr('code',d.m,Math.max(1,(d.l||1)-off))}
+ else{$('co').textContent+=(d.t=='error'?'✖ ':d.t=='warn'?'⚠ ':'› ')+d.m+'\n'}});
+// ---- ошибки ----
+const TR=[
+[/cannot find symbol/,'Java: не найден символ (переменная, метод или класс). Проверь написание и import.'],
+[/';' expected|CS1002/,'Пропущена точка с запятой в конце команды (смотри эту или предыдущую строку).'],
+[/missing return statement/,'В методе нет return на всех путях выполнения.'],
+[/incompatible types/,'Несовместимые типы: значение нельзя присвоить переменной такого типа.'],
+[/class, interface, or enum expected/,'Лишняя или недостающая фигурная скобка.'],
+[/NullPointerException|NullReferenceException/,'Обращение к пустому значению (null): объект не создан.'],
+[/ArrayIndexOutOfBounds|IndexOutOfRange/,'Индекс за пределами массива.'],
+[/NumberFormatException|FormatException/,'Строку нельзя превратить в число: проверь формат.'],
+[/CS0103/,'C#: имя не существует в этом контексте. Проверь написание или объяви переменную.'],
+[/CS0246/,'C#: не найден тип или пространство имён. Добавь using.'],
+[/(\w+) is not defined/,'Переменная или функция «$1» не объявлена. Проверь написание или объяви её выше.'],
+[/(.+) is not a function/,'«$1» — это не функция. Проверь имя и что оно определено.'],
+[/Cannot read propert(?:y|ies) .*of (undefined|null)|undefined \(reading/,'Обращение к свойству у пустого значения (undefined/null). Значение ещё не задано или не найден элемент.'],
+[/Unexpected end of input/,'Код оборвался: не закрыта скобка, кавычка или блок {}.'],
+[/Unexpected (token|identifier|string)/,'Неожиданный символ или слово. Проверь запятые, скобки и кавычки рядом с этой строкой.'],
+[/Assignment to constant/,'Нельзя изменить переменную, объявленную через const. Используй let.'],
+[/Maximum call stack/,'Бесконечная рекурсия: функция вызывает сама себя без остановки.'],
+[/Invalid or unexpected token/,'Недопустимый символ — часто это незакрытая кавычка.'],
+[/already been declared/,'Эта переменная уже объявлена. Переименуй или убери повтор.'],
+[/Script error/,'Ошибка в сторонней части кода, подробностей нет.'],
+[/NameError: name '(\w+)'/,'Имя «$1» не определено. Проверь написание или создай переменную выше.'],
+[/IndentationError/,'Неверные отступы. В Python вложенный блок сдвигают на 4 пробела.'],
+[/ParseError|SyntaxError/,'Синтаксическая ошибка: проверь двоеточия, скобки, кавычки и отступы в этой строке.'],[/IndexError/,'Индекс вне списка: такого элемента нет, проверь длину списка.'],[/KeyError/,'Нет такого ключа в словаре.'],[/ValueError/,'Неподходящее значение, например int("abc").'],[/AttributeError/,'У объекта нет такого атрибута или метода. Проверь написание.'],[/TypeError/,'Неподходящий тип данных, например сложение числа со строкой.'],[/ImportError/,'Модуль не найден или не поддерживается в этой сборке Python.'],[/ZeroDivisionError/,'Деление на ноль.'],[/ModuleNotFoundError: No module named '(\w+)'/,'Модуль «$1» не найден. Его нужно установить.']
+];
+function ru(m){for(const [r,t] of TR){const x=m.match(r);if(x)return t.replace(/\$(\d)/g,(a,i)=>x[i]||'')}return 'Нет готового перевода. Смотри текст ошибки и строку.'}
+function logErr(src,msg,line){ERR.unshift({src,msg,line,ru:ru(msg),t:new Date().toLocaleTimeString()});drawE()}
+function drawE(){const b=$('eb');b.hidden=!ERR.length;b.textContent=ERR.length;const el=$('el');el.innerHTML='';
+ if(!ERR.length){el.innerHTML='<p class="hint">Ошибок нет.</p>';return}
+ ERR.forEach(e=>{const d=document.createElement('div');d.className='er';
+  d.innerHTML='<span class="bd">'+(e.src=='app'?'приложение':'твой код')+'</span><small>'+e.t+(e.line?' · строка '+e.line+' · файл '+esc(S.cur):'')+'</small><div class="ru">'+esc(e.ru)+'</div><code>'+esc(e.msg)+'</code>';
+  if(e.line)d.onclick=()=>{tab('pc');const ls=ta.value.split('\n');let p=0;for(let i=0;i<Math.min(e.line,ls.length)-1;i++)p+=ls[i].length+1;ta.focus();ta.setSelectionRange(p,p+(ls[e.line-1]||'').length)};
+  el.appendChild(d)})}
+$('ce').onclick=()=>{ERR=[];drawE()};
+addEventListener('error',e=>logErr('app',e.message||'Неизвестная ошибка',0));
+addEventListener('unhandledrejection',e=>logErr('app',String(e.reason&&e.reason.message||e.reason),0));
+// ---- вкладки ----
+function tab(id){document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==id));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==id));
+ $('sg').classList.toggle('on',id=='pc');$('sy').classList.toggle('on',id=='pc');if(id=='pf')lf();if(id=='pe')drawE()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+open(S.cur);drawE();
+// ---- система рантайм-пакетов (Java, C# и др. ставятся без пересборки APK) ----
+const PK={},RT={};
+function idb(){return new Promise((ok,no)=>{const r=indexedDB.open('pcpacks',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function idbDo(mode,fn){const d=await idb();return new Promise((ok,no)=>{const t=d.transaction('p',mode),q=fn(t.objectStore('p'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})}
+window.PocketRuntime={current:null,register(def){const c=this.current||{};RT[def.id]=Object.assign({},def,{url:c.url||(()=>null)});drawP()}};
+async function loadPack(rec){
+ const urls={};for(const k in rec.files)urls[k]=URL.createObjectURL(k.endsWith('.js')?new Blob([rec.files[k]],{type:'text/javascript'}):rec.files[k]);
+ PK[rec.id]={rec,urls};PocketRuntime.current={id:rec.id,url:p=>urls[p]||null};
+ const en=rec.manifest.entry||'main.js';
+ await new Promise((ok,no)=>{const s=document.createElement('script');s.src=urls[en];s.onload=ok;s.onerror=()=>no(new Error('не загрузился '+en));document.head.appendChild(s)});
+ PocketRuntime.current=null}
+async function installPack(z){let m;try{m=JSON.parse(await z.file('manifest.json').async('string'))}catch(e){return false}
+ if(!m||!m.pocketRuntime||!m.id)return false;
+ try{const files={};for(const k of Object.keys(z.files)){const o=z.files[k];if(!o.dir)files[k]=await o.async('blob')}
+  const rec={id:m.id,manifest:m,files};await idbDo('readwrite',s=>s.put(rec));await loadPack(rec);alert('Установлен рантайм: '+(m.name||m.id)+' ('+(m.langs||[]).join(', ')+')')}
+ catch(e){logErr('app','Не удалось установить рантайм: '+e.message)}
+ return true}
+function drawP(){const b=$('pl');if(!b)return;b.innerHTML='';
+ const add=(t,del)=>{const d=document.createElement('div');d.className='fi';const s=document.createElement('span');s.textContent=t;d.appendChild(s);if(del){const x=document.createElement('button');x.textContent='🗑';x.onclick=del;d.appendChild(x)}b.appendChild(d)};
+ add('Python (Pyodide) · HTML · JS — встроены');
+ Object.values(RT).forEach(r=>add((r.name||r.id)+' — '+(r.langs||[]).join(', '),async()=>{await idbDo('readwrite',x=>x.delete(r.id));delete RT[r.id];delete PK[r.id];drawP()}))}
+async function runExt(rt,l){const co=$('co');co.textContent='';
+ const ctx={file:S.cur,code:S.files[S.cur],files:S.files,lang:l,url:rt.url,out:t=>{co.textContent+=t;co.scrollTop=co.scrollHeight},input:p=>Promise.resolve(prompt(p||'Ввод')||'')};
+ try{if(rt.init&&!rt._i){co.textContent='Загрузка рантайма '+(rt.name||rt.id)+'…\n';await rt.init(ctx);rt._i=1;co.textContent=''}
+  await rt.run(ctx);co.textContent+='\n✔ Готово'}
+ catch(e){const m=String(e&&e.message||e);co.textContent+='\n✖ '+m+'\n→ '+ru(m);logErr('code',m,(e&&e.line)||0)}}
+drawP();
+(async()=>{try{const all=await idbDo('readonly',s=>s.getAll());for(const rec of all||[]){try{await loadPack(rec)}catch(e){logErr('app','Рантайм '+rec.id+': '+e.message)}}}catch(e){}drawP()})();
+</script></body></html>
